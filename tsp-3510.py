@@ -7,6 +7,7 @@ import random
 import math
 import time
 
+# Generates an initial greedy solution
 def generateGreedy():
     tour_length = 0
     tour_sequence = [1]
@@ -45,6 +46,7 @@ def generateGreedy():
     #print("END GENERATE GREEDY")
     return tour_length, tour_sequence
 
+# Generates an alternate path by reversing a subpath between two nodes
 def getNeighborPath(path, c1, c2):
     if c1 == c2:
         return path
@@ -62,6 +64,7 @@ def getNeighborPath(path, c1, c2):
 
     return path1 + path2 + path3
 
+# Returns the tour length of a specified sequence of nodes
 def getTourLength(path):
     tour_length = 0
 
@@ -80,7 +83,7 @@ args = sys.argv
 # process inputs
 input_coords_file = args[1]
 output_file = args[2]
-time_allowed = float(args[3]) - 0.5     #take off 0.5 seconds to account for writing to output
+time_allowed = float(args[3]) - 0.5     # take off 0.5 seconds to account for writing to output at end
 
 # read in coordinates
 input_file = open(input_coords_file, "r")
@@ -90,14 +93,13 @@ line = input_file.readline()
 cities = {}
 while(line is not ''):
     a = line.split(" ")
-    cities[int(float(a[0]))] = (int(float(a[1])), int(float(a[2])))
+    cities[int(float(a[0]))] = (int(float(a[1])), int(float(a[2])))     # convert to int for faster arithmetic
     line = input_file.readline()
 
 # start with greedy route
-
 path_length, path_sequence = generateGreedy()
 
-temperature = start_time - time.time() + time_allowed
+time_left = start_time - time.time() + time_allowed
 
 while (time.time() - start_time < time_allowed):
     # choose two cities on the tour randomly and reverse order
@@ -113,19 +115,21 @@ while (time.time() - start_time < time_allowed):
         path_length = neighbor_length
         path_sequence = neighbor_sequence
     else:
+        temperature = time_left * 10
+
         # if its worse, accept it according to some probability
-        if math.exp((path_length - neighbor_length)/(temperature*10)) > random.random():
+        if math.exp((path_length - neighbor_length)/temperature) > random.random():
             # override with worse path
             print("using worse path")
             path_length = neighbor_length
             path_sequence = neighbor_sequence
 
     # repeat and lower temperature each time
-    temperature = start_time - time.time() + time_allowed
+    time_left = start_time - time.time() + time_allowed
 
-    print("temperature: ", temperature*10)
+    print("temperature: ", temperature)
     print("path length:", path_length)
-    print("time left:", temperature)
+    print("time left:", time_left)
 
 
 # write to output file
