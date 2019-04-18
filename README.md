@@ -17,7 +17,7 @@ Run the program by opening terminal and navigating to folder containing files. T
 `python3 tsp-3510.py <input-coordinates.txt> <output-tour.txt> <time>`  
 
 Sample command:  
-`python3 tsp-3510.py mat-test.txt output-tour.txt 300`
+`python3 tsp-3510.py mat-test.txt output-tour.txt 120`
 
 ## Known Bugs and Limitations
 - Always uses the first node provided in the input file as the start and end node
