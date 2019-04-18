@@ -5,6 +5,7 @@ import sys
 from scipy.spatial import distance
 import random
 import math
+import time
 
 def generateGreedy():
     tour_length = 0
@@ -30,23 +31,18 @@ def generateGreedy():
                 shortest_dist = dist
                 shortest_node = i
 
-        #print("Tour length of", shortest_dist, "between", curr_node, "and", shortest_node)
         curr_node = shortest_node
         visited_cities.add(shortest_node)
 
         tour_length += shortest_dist
-        #print("path length:", tour_length)
         tour_sequence.append(shortest_node)
 
     # return to node 1
     dist = distance.euclidean(cities[curr_node], cities[1])
-    #print("Tour length of", dist, "between", curr_node, "and", 1)
     tour_length += dist
-    #print("path length:", tour_length)
     tour_sequence.append(1)
 
-    print("END GENERATE GREEDY")
-    #print("size of visited cities:", len(visited_cities))
+    #print("END GENERATE GREEDY")
     return tour_length, tour_sequence
 
 def getNeighborPath(path, c1, c2):
@@ -64,25 +60,19 @@ def getNeighborPath(path, c1, c2):
     path2.reverse()
     path3 = path[c2+1:]
 
-    # print("path1:", path1)
-    # print("path2:", path2)
-    # print("path3:", path3)
-
     return path1 + path2 + path3
 
 def getTourLength(path):
     tour_length = 0
-    #counter = 0
 
     for i in range(len(path) - 1):
         #print("Tour length of", distance.euclidean(cities[path[i]], cities[path[i+1]]), "between", path[i], "and", path[i+1])
         tour_length += distance.euclidean(cities[path[i]], cities[path[i+1]])
-        #counter += 1
-
-    #print("incremented length", counter, "times")
 
     return tour_length
 
+
+start_time = time.time()
 
 #print(sys.argv)
 args = sys.argv
@@ -90,7 +80,7 @@ args = sys.argv
 # process inputs
 input_coords_file = args[1]
 output_file = args[2]
-time_allowed = args[3]
+time_allowed = float(args[3]) - 0.5     #take off 0.5 seconds to account for writing to output
 
 # read in coordinates
 input_file = open(input_coords_file, "r")
@@ -103,38 +93,14 @@ while(line is not ''):
     cities[int(float(a[0]))] = (int(float(a[1])), int(float(a[2])))
     line = input_file.readline()
 
-'''
-print(cities)
-'''
-
-# simulated annealing
-
 # start with greedy route
 
 path_length, path_sequence = generateGreedy()
 
-print("path length:", path_length)
-print("path sequence:", path_sequence)
+temperature = start_time - time.time() + time_allowed
 
-
-# choose two cities on the tour randomly and reverse order
-temperature = len(cities) * 50
-cooling_rate = 0.01
-
-# index1 = random.randint(1, len(cities)-1)
-# index2 = random.randint(1, len(cities)-1)
-
-# print("index1:", index1)
-# print("index2:", index2)
-
-# neighbor_sequence = getNeighborPath(path_sequence[:], index1, index2)
-# neighbor_length = getTourLength(neighbor_sequence)
-
-# print("neighbor sequence", neighbor_sequence)
-
-lowest_length = sys.maxsize
-
-while (temperature > 1):
+while (time.time() - start_time < time_allowed):
+    # choose two cities on the tour randomly and reverse order
     index1 = random.randint(1, len(cities)-1)
     index2 = random.randint(1, len(cities)-1)
 
@@ -142,32 +108,27 @@ while (temperature > 1):
     neighbor_length = getTourLength(neighbor_sequence)
 
     # if this tour is better accept it
-    print("neighbor length:", neighbor_length, "path length:", path_length)
     if neighbor_length < path_length:
-        print("found better path")
+        #print("found better path")
         path_length = neighbor_length
         path_sequence = neighbor_sequence
     else:
         # if its worse, accept it according to some probability
-        print("did not find better path")
-        print("math function:", math.exp((path_length - neighbor_length)/temperature))
-        if math.exp((path_length - neighbor_length)/temperature) > random.random():
-            print("overriding worse path")
+        if math.exp((path_length - neighbor_length)/(temperature*10)) > random.random():
+            # override with worse path
+            print("using worse path")
             path_length = neighbor_length
             path_sequence = neighbor_sequence
 
     # repeat and lower temperature each time
-    temperature -= cooling_rate
-    if path_length < lowest_length:
-        lowest_length = path_length
+    temperature = start_time - time.time() + time_allowed
 
-    print("temperature: ", temperature)
+    print("temperature: ", temperature*10)
     print("path length:", path_length)
+    print("time left:", temperature)
 
-print("shortest path found:", lowest_length)
 
 # write to output file
-
 for i in range(len(path_sequence)):
     path_sequence[i] = str(path_sequence[i])
 
