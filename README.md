@@ -1,8 +1,8 @@
 # Traveling Salesman - Simulated Annealing with Timer
 
 ## Made By
-Varun Saxena - vsaxena30@gatech.edu  
-Ahan Shah - ahanshah14@gatech.edu  
+Varun Saxena
+Ahan Shah
 April 19th, 2019
 
 ## Files
